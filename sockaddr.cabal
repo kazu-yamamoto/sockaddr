@@ -21,4 +21,4 @@ Library
 
 Source-Repository head
   Type:                 git
-  Location:             git://github.com/kazu-yamamoto/sockaddr
+  Location:             https://github.com/kazu-yamamoto/sockaddr

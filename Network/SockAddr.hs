@@ -24,7 +24,9 @@ import Network.Socket (
 -- | Convert the address part of 'SockAddr' to 'String'.
 --   The port number is not included. If the address is
 --   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
---   it is shown as IPv4. For 'SockAddrUnix', its path is returned.
+--   it is shown as IPv4. A non-zero scope ID of IPv6 is appended
+--   as a number, e.g. @fe80::1%4@.
+--   For 'SockAddrUnix', its path is returned.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddr $ SockAddrInet 80 (tupleToHostAddress (192,0,2,1))
@@ -38,7 +40,9 @@ showSockAddr sa = C8.unpack $ showSockAddrBS sa
 -- | Convert the address part of 'SockAddr' to 'ByteString'.
 --   The port number is not included. If the address is
 --   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
---   it is shown as IPv4. For 'SockAddrUnix', its path is encoded in UTF-8.
+--   it is shown as IPv4. A non-zero scope ID of IPv6 is appended
+--   as a number, e.g. @fe80::1%4@.
+--   For 'SockAddrUnix', its path is encoded in UTF-8.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddrBS $ SockAddrInet6 80 0 (tupleToHostAddress6 (0,0,0,0,0,0,0,1)) 0
@@ -50,11 +54,14 @@ showSockAddrBS = BL.toStrict . B.toLazyByteString . sockAddrBuilder
 
 sockAddrBuilder :: SockAddr -> B.Builder
 sockAddrBuilder (SockAddrInet _ addr4) = buildIPv4 $ hostAddressToTuple addr4
-sockAddrBuilder (SockAddrInet6 _ _ addr6 _) = case hostAddress6ToTuple addr6 of
+sockAddrBuilder (SockAddrInet6 _ _ addr6 scope) = case hostAddress6ToTuple addr6 of
     (0, 0, 0, 0, 0, 0xffff, h, l) -> buildIPv4 (hi h, lo h, hi l, lo l)
-    (0, 0, 0, 0, 0, 0, 0, 1) -> B.string7 "::1"
-    _ -> buildIPv6 addr6
+    (0, 0, 0, 0, 0, 0, 0, 1) -> B.string7 "::1" <> zone
+    _ -> buildIPv6 addr6 <> zone
   where
+    zone
+        | scope == 0 = mempty
+        | otherwise = B.char7 '%' <> B.word32Dec scope
     hi w = fromIntegral (w `shiftR` 8)
     lo w = fromIntegral w
 sockAddrBuilder (SockAddrUnix path) = B.stringUtf8 path

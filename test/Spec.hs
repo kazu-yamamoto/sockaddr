@@ -25,9 +25,17 @@ main = hspec $ do
         it "shows IPv6" $
             showSockAddr (v6 (0x2001, 0xdb8, 1, 2, 3, 4, 5, 6))
                 `shouldBe` "2001:db8:1:2:3:4:5:6"
+        it "compresses zeros (RFC 5952)" $ do
+            showSockAddr (v6 (0, 0, 0, 0, 0, 0, 0, 0)) `shouldBe` "::"
+            showSockAddr (v6 (0xfe80, 0, 0, 0, 0, 0, 0, 1)) `shouldBe` "fe80::1"
+            showSockAddr (v6 (0x2001, 0xdb8, 0, 0, 0, 0, 0, 0)) `shouldBe` "2001:db8::"
+            showSockAddr (v6 (0x2001, 0xdb8, 0, 1, 1, 1, 1, 1)) `shouldBe` "2001:db8:0:1:1:1:1:1"
+            showSockAddr (v6 (0x2001, 0, 0, 1, 0, 0, 0, 1)) `shouldBe` "2001:0:0:1::1"
+            showSockAddr (v6 (0x2001, 0xdb8, 0, 0, 1, 0, 0, 1)) `shouldBe` "2001:db8::1:0:0:1"
+            showSockAddr (v6 (0x2001, 0xdb8, 0xABCD, 0, 0, 0, 0, 1)) `shouldBe` "2001:db8:abcd::1"
         it "appends non-zero scope ID" $
             showSockAddr (SockAddrInet6 80 0 (tupleToHostAddress6 (0xfe80, 0, 0, 0, 0, 0, 0, 0x1234)) 4)
-                `shouldBe` "fe80:0:0:0:0:0:0:1234%4"
+                `shouldBe` "fe80::1234%4"
         it "shows Unix domain socket path" $
             showSockAddr (SockAddrUnix "/tmp/\12477") `shouldBe` "/tmp/\12477"
     describe "showSockAddrBS" $ do

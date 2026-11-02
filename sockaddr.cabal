@@ -26,7 +26,6 @@ library
     ghc-options:      -Wall
     build-depends:
         base >=4 && <5,
-        byteorder >=1.0 && <1.1,
         bytestring >=0.10 && <0.13,
         network >=3.0 && <3.3
 

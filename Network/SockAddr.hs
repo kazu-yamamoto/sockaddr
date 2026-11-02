@@ -5,18 +5,19 @@ module Network.SockAddr (
   , showSockAddrBS
   ) where
 
-import Data.Bits (shiftR, (.&.))
+import Data.Bits (shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Builder as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intersperse)
-import Data.Word (Word32)
-import Network.Socket (SockAddr(..), HostAddress, HostAddress6)
-import System.ByteOrder
-
-isReversed :: Bool
-isReversed = byteOrder == LittleEndian
+import Data.Word (Word8)
+import Network.Socket (
+    HostAddress6,
+    SockAddr (..),
+    hostAddress6ToTuple,
+    hostAddressToTuple,
+ )
 
 ----------------------------------------------------------------
 
@@ -43,24 +44,20 @@ showSockAddrBS = BL.toStrict . B.toLazyByteString . sockAddrBuilder
 ----------------------------------------------------------------
 
 sockAddrBuilder :: SockAddr -> B.Builder
-sockAddrBuilder (SockAddrInet _ addr4)                       = buildIPv4 addr4 isReversed
-sockAddrBuilder (SockAddrInet6 _ _ (0,0,0x0000ffff,addr4) _) = buildIPv4 addr4 False
-sockAddrBuilder (SockAddrInet6 _ _ (0,0,0,1) _)              = B.string7 "::1"
-sockAddrBuilder (SockAddrInet6 _ _ addr6 _)                  = buildIPv6 addr6
-sockAddrBuilder _                                            = B.string7 "unknownSocket"
-
--- HostAddress is network byte order.
-buildIPv4 :: HostAddress -> Bool -> B.Builder
-buildIPv4 w32 reversed = mconcat $ intersperse (B.char7 '.') $ map B.word32Dec bs
+sockAddrBuilder (SockAddrInet _ addr4) = buildIPv4 $ hostAddressToTuple addr4
+sockAddrBuilder (SockAddrInet6 _ _ addr6 _) = case hostAddress6ToTuple addr6 of
+    (0, 0, 0, 0, 0, 0xffff, h, l) -> buildIPv4 (hi h, lo h, hi l, lo l)
+    (0, 0, 0, 0, 0, 0, 0, 1) -> B.string7 "::1"
+    _ -> buildIPv6 addr6
   where
-    bs0 = [w32 .&. 0xff, (w32 `shiftR` 8) .&. 0xff, (w32 `shiftR` 16) .&. 0xff, w32 `shiftR` 24]
-    bs | reversed  = bs0
-       | otherwise = reverse bs0
+    hi w = fromIntegral (w `shiftR` 8)
+    lo w = fromIntegral w
+sockAddrBuilder _ = B.string7 "unknownSocket"
 
--- HostAddress6 is host byte order.
+buildIPv4 :: (Word8, Word8, Word8, Word8) -> B.Builder
+buildIPv4 (a, b, c, d) = mconcat $ intersperse (B.char7 '.') $ map B.word8Dec [a, b, c, d]
+
 buildIPv6 :: HostAddress6 -> B.Builder
-buildIPv6 (w1,w2,w3,w4) =
-    mconcat $ intersperse (B.char7 ':') $ map B.word32Hex $ concatMap split16 [w1,w2,w3,w4]
+buildIPv6 addr6 = mconcat $ intersperse (B.char7 ':') $ map B.word16Hex [a, b, c, d, e, f, g, h]
   where
-    split16 :: Word32 -> [Word32]
-    split16 w = [w `shiftR` 16, w .&. 0xffff]
+    (a, b, c, d, e, f, g, h) = hostAddress6ToTuple addr6

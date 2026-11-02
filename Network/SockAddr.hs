@@ -1,4 +1,4 @@
--- | Converting an address in 'SockAddr'.
+-- | Converting the address part of 'SockAddr' (without port).
 
 module Network.SockAddr (
     showSockAddr
@@ -21,7 +21,8 @@ import Network.Socket (
 
 ----------------------------------------------------------------
 
--- | Convert 'SockAddr' to 'String'. If the address is
+-- | Convert the address part of 'SockAddr' to 'String'.
+--   The port number is not included. If the address is
 --   an IPv4-embedded IPv6 address, the IPv4 is extracted.
 --
 -- >>> import Network.Socket
@@ -32,7 +33,8 @@ import Network.Socket (
 showSockAddr :: SockAddr -> String
 showSockAddr = C8.unpack . showSockAddrBS
 
--- | Convert 'SockAddr' to 'ByteString'. If the address is
+-- | Convert the address part of 'SockAddr' to 'ByteString'.
+--   The port number is not included. If the address is
 --   an IPv4-embedded IPv6 address, the IPv4 is extracted.
 --
 -- >>> import Network.Socket

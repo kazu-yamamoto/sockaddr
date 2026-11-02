@@ -36,10 +36,10 @@ main = hspec $ do
         it "appends non-zero scope ID" $
             showSockAddr (SockAddrInet6 80 0 (tupleToHostAddress6 (0xfe80, 0, 0, 0, 0, 0, 0, 0x1234)) 4)
                 `shouldBe` "fe80::1234%4"
-        it "shows Unix domain socket path" $
-            showSockAddr (SockAddrUnix "/tmp/\12477") `shouldBe` "/tmp/\12477"
+        it "does not expose Unix domain socket path" $
+            showSockAddr (SockAddrUnix "/tmp/sock") `shouldBe` "unknownSocket"
     describe "showSockAddrBS" $ do
         it "agrees with showSockAddr" $
             showSockAddrBS (v4 (192, 0, 2, 1)) `shouldBe` "192.0.2.1"
-        it "encodes Unix domain socket path in UTF-8" $
-            showSockAddrBS (SockAddrUnix "/tmp/\12477") `shouldBe` "/tmp/\227\130\189"
+        it "does not expose Unix domain socket path" $
+            showSockAddrBS (SockAddrUnix "/tmp/sock") `shouldBe` "unknownSocket"

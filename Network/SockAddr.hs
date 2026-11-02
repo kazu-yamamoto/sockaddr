@@ -23,7 +23,8 @@ import Network.Socket (
 
 -- | Convert the address part of 'SockAddr' to 'String'.
 --   The port number is not included. If the address is
---   an IPv4-embedded IPv6 address, the IPv4 is extracted.
+--   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
+--   it is shown as IPv4.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddr $ SockAddrInet 80 (tupleToHostAddress (192,0,2,1))
@@ -35,7 +36,8 @@ showSockAddr = C8.unpack . showSockAddrBS
 
 -- | Convert the address part of 'SockAddr' to 'ByteString'.
 --   The port number is not included. If the address is
---   an IPv4-embedded IPv6 address, the IPv4 is extracted.
+--   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
+--   it is shown as IPv4.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddrBS $ SockAddrInet6 80 0 (tupleToHostAddress6 (0,0,0,0,0,0,0,1)) 0

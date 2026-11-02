@@ -17,7 +17,7 @@ main = hspec $ do
         it "shows IPv4" $ do
             showSockAddr (v4 (127, 0, 0, 1)) `shouldBe` "127.0.0.1"
             showSockAddr (v4 (192, 0, 2, 255)) `shouldBe` "192.0.2.255"
-        it "extracts IPv4 from IPv4-mapped IPv6" $
+        it "shows IPv4-mapped IPv6 as IPv4" $
             showSockAddr (v6 (0, 0, 0, 0, 0, 0xffff, 0xc000, 0x0201))
                 `shouldBe` "192.0.2.1"
         it "shows IPv6 loopback" $

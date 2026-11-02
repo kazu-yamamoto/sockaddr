@@ -1,24 +1,31 @@
-Name:                   sockaddr
-Version:                0.0.1
-Author:                 Kazu Yamamoto <kazu@iij.ad.jp>
-Maintainer:             Kazu Yamamoto <kazu@iij.ad.jp>
-License:                BSD3
-License-File:           LICENSE
-Synopsis:               Printing SockAddr
-Description:            Printing SockAddr
-Category:               Network
-Cabal-Version:          >= 1.10
-Build-Type:             Simple
+cabal-version:      2.4
+name:               sockaddr
+version:            0.0.1
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Kazu Yamamoto <kazu@iij.ad.jp>
+maintainer:         Kazu Yamamoto <kazu@iij.ad.jp>
+synopsis:           Printing SockAddr
+description:
+    Converting the address part of 'SockAddr' to 'String' or 'ByteString'.
 
-Library
-  Default-Language:     Haskell2010
-  GHC-Options:          -Wall
-  Exposed-Modules:      Network.SockAddr
-  Build-Depends:        base >= 4 && < 5
-                      , byteorder
-                      , bytestring
-                      , network
+category:           Network
+build-type:         Simple
+tested-with:        GHC == 9.12.4
+extra-doc-files:
+    ChangeLog.md
+    README.md
 
-Source-Repository head
-  Type:                 git
-  Location:             https://github.com/kazu-yamamoto/sockaddr
+source-repository head
+    type:     git
+    location: https://github.com/kazu-yamamoto/sockaddr
+
+library
+    exposed-modules:  Network.SockAddr
+    default-language: Haskell2010
+    ghc-options:      -Wall
+    build-depends:
+        base >=4 && <5,
+        byteorder >=1.0 && <1.1,
+        bytestring >=0.10 && <0.13,
+        network >=3.0 && <3.3

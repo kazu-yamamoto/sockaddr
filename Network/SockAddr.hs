@@ -21,9 +21,10 @@ isReversed = byteOrder == LittleEndian
 --   an IPv4-embedded IPv6 address, the IPv4 is extracted.
 --
 -- >>> import Network.Socket
--- >>> as <- getAddrInfo (Just defaultHints) (Just "example.org") (Just "http")
--- >>> map (showSockAddr.addrAddress) as
--- ["93.184.216.119","93.184.216.119","2606:2800:220:6d:26bf:1447:1097:aa7","2606:2800:220:6d:26bf:1447:1097:aa7"]
+-- >>> showSockAddr $ SockAddrInet 80 (tupleToHostAddress (192,0,2,1))
+-- "192.0.2.1"
+-- >>> showSockAddr $ SockAddrInet6 80 0 (tupleToHostAddress6 (0x2001,0xdb8,1,2,3,4,5,6)) 0
+-- "2001:db8:1:2:3:4:5:6"
 showSockAddr :: SockAddr -> String
 showSockAddr (SockAddrInet _ addr4)                       = showIPv4 addr4 isReversed
 showSockAddr (SockAddrInet6 _ _ (0,0,0x0000ffff,addr4) _) = showIPv4 addr4 False
@@ -68,9 +69,7 @@ showIPv6 (w1,w2,w3,w4) =
 --   an IPv4-embedded IPv6 address, the IPv4 is extracted.
 --
 -- >>> import Network.Socket
--- >>> as <- getAddrInfo (Just defaultHints) (Just "localhost") (Just "http")
--- >>> map (showSockAddrBS.addrAddress) as
--- ["127.0.0.1","::1","fe80:0:0:0:0:0:0:1"]
-
+-- >>> showSockAddrBS $ SockAddrInet6 80 0 (tupleToHostAddress6 (0,0,0,0,0,0,0,1)) 0
+-- "::1"
 showSockAddrBS :: SockAddr -> ByteString
 showSockAddrBS = BS.pack . showSockAddr

@@ -24,7 +24,7 @@ import Network.Socket (
 -- | Convert the address part of 'SockAddr' to 'String'.
 --   The port number is not included. If the address is
 --   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
---   it is shown as IPv4.
+--   it is shown as IPv4. For 'SockAddrUnix', its path is returned.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddr $ SockAddrInet 80 (tupleToHostAddress (192,0,2,1))
@@ -32,12 +32,13 @@ import Network.Socket (
 -- >>> showSockAddr $ SockAddrInet6 80 0 (tupleToHostAddress6 (0x2001,0xdb8,1,2,3,4,5,6)) 0
 -- "2001:db8:1:2:3:4:5:6"
 showSockAddr :: SockAddr -> String
-showSockAddr = C8.unpack . showSockAddrBS
+showSockAddr (SockAddrUnix path) = path
+showSockAddr sa = C8.unpack $ showSockAddrBS sa
 
 -- | Convert the address part of 'SockAddr' to 'ByteString'.
 --   The port number is not included. If the address is
 --   an IPv4-mapped IPv6 address (@::ffff:0:0/96@),
---   it is shown as IPv4.
+--   it is shown as IPv4. For 'SockAddrUnix', its path is encoded in UTF-8.
 --
 -- >>> import Network.Socket
 -- >>> showSockAddrBS $ SockAddrInet6 80 0 (tupleToHostAddress6 (0,0,0,0,0,0,0,1)) 0
@@ -56,7 +57,7 @@ sockAddrBuilder (SockAddrInet6 _ _ addr6 _) = case hostAddress6ToTuple addr6 of
   where
     hi w = fromIntegral (w `shiftR` 8)
     lo w = fromIntegral w
-sockAddrBuilder _ = B.string7 "unknownSocket"
+sockAddrBuilder (SockAddrUnix path) = B.stringUtf8 path
 
 buildIPv4 :: (Word8, Word8, Word8, Word8) -> B.Builder
 buildIPv4 (a, b, c, d) = mconcat $ intersperse (B.char7 '.') $ map B.word8Dec [a, b, c, d]

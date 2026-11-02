@@ -25,6 +25,10 @@ main = hspec $ do
         it "shows IPv6" $
             showSockAddr (v6 (0x2001, 0xdb8, 1, 2, 3, 4, 5, 6))
                 `shouldBe` "2001:db8:1:2:3:4:5:6"
-    describe "showSockAddrBS" $
+        it "shows Unix domain socket path" $
+            showSockAddr (SockAddrUnix "/tmp/\12477") `shouldBe` "/tmp/\12477"
+    describe "showSockAddrBS" $ do
         it "agrees with showSockAddr" $
             showSockAddrBS (v4 (192, 0, 2, 1)) `shouldBe` "192.0.2.1"
+        it "encodes Unix domain socket path in UTF-8" $
+            showSockAddrBS (SockAddrUnix "/tmp/\12477") `shouldBe` "/tmp/\227\130\189"
